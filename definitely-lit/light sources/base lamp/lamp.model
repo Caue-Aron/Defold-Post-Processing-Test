@@ -1,0 +1,7 @@
+mesh: "/definitely-lit/light sources/light_source_quad.glb"
+material: "/definitely-lit/light sources/material/light_source.material"
+textures: "/definitely-lit/light sources/base lamp/lamp.png"
+skeleton: ""
+animations: ""
+default_animation: ""
+name: "unnamed"

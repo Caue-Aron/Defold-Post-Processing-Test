@@ -1,0 +1,6 @@
+mesh: "/post-processing/quad_2x2.dae"
+material: "/builtins/materials/model.material"
+skeleton: ""
+animations: ""
+default_animation: ""
+name: "unnamed"
