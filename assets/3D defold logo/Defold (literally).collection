@@ -8,10 +8,10 @@ instances {
     z: 13.0
   }
   rotation {
-    x: 2.1198927E-17
-    y: 0.938159
-    z: -0.34620476
-    w: 5.744567E-17
+    x: 0.0
+    y: 0.92122126
+    z: 0.0
+    w: -0.389039
   }
   component_properties {
     id: "sun"
@@ -19,6 +19,11 @@ instances {
       id: "active"
       value: "true"
       type: PROPERTY_TYPE_BOOLEAN
+    }
+    properties {
+      id: "intensity"
+      value: "1.0"
+      type: PROPERTY_TYPE_NUMBER
     }
     properties {
       id: "color"
@@ -84,16 +89,6 @@ instances {
   }
   component_properties {
     id: "light_reciever"
-    properties {
-      id: "sun_or_lamps"
-      value: "true"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
-    properties {
-      id: "sun_and_lamps"
-      value: "false"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
     properties {
       id: "ambient"
       value: "1.0, 1.0, 1.0, 0.35"
