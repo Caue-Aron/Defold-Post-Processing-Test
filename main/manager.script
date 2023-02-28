@@ -1,0 +1,31 @@
+local rendercam = require 'rendercam.rendercam'
+
+function acquire_input()
+  msg.post('.', hash'acquire_input_focus')
+end
+
+function init(self)
+  acquire_input()
+  msg.post('#post_processing_loader', 'load')
+  msg.post('#defold_scene_loader', 'load')
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == hash("proxy_loaded") then
+    msg.post(sender, "init")
+    msg.post(sender, "enable")
+  end
+end
+
+function on_input(self, action_id, action)
+  if action_id == hash 'switch_targets' and action.pressed then
+    
+    if rendercam.get_active_camera() == hash'scene_cam' then
+      rendercam.activate_camera(hash '/post_processing_camera')
+    else
+      rendercam.activate_camera(hash '/scene_cam')
+    end
+
+    msg.post('@render:', hash'switch_targets')
+  end
+end

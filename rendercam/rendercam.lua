@@ -142,6 +142,10 @@ function M.activate_camera(cam_id)
 	end
 end
 
+function M.get_active_camera()
+  return curCam.id
+end
+
 function M.camera_init(cam_id, data)
 	if cameras[cam_id] then
 		print("ERROR: rendercam.camera_init() - Camera name conflict with ID: " .. cam_id .. ". \n\tNew camera will overwrite the old! Your cameras must have unique IDs.")

@@ -7,6 +7,9 @@ local CLEAR_COLOR = hash("clear_color")
 local WINDOW_RESIZED = hash("window_resized")
 local UPDATE_WINDOW = hash("update window")
 
+local post_process_target = true
+local game_world_target = false
+
 
 local function update_window(self)
 	rendercam.update_window(render.get_window_width(), render.get_window_height())
@@ -14,11 +17,11 @@ local function update_window(self)
 end
 
 function init(self)
-	self.tile_pred = render.predicate({"tile"})
 	self.gui_pred = render.predicate({"gui"})
 	self.text_pred = render.predicate({"text"})
 	self.model_pred = render.predicate({"model"})
 	self.particle_pred = render.predicate({"particle"})
+	self.post_processing_pred = render.predicate({"post_processing"})
 
 	self.clear_color = vmath.vector4(0)
 	self.clear_color.x = sys.get_config("render.clear_color_red", 0)
@@ -38,47 +41,67 @@ function init(self)
 end
 
 function update(self)
-	render.set_depth_mask(true)
-	render.set_stencil_mask(0xff)
-	render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+  local function default_renderer()
+    render.set_depth_mask(true)
+    render.set_stencil_mask(0xff)
+    render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+  
+    render.set_viewport(vp.x, vp.y, vp.width, vp.height)
+  end
 
-	render.set_viewport(vp.x, vp.y, vp.width, vp.height)
+  local function draw_post_processing()
+    render.set_projection(vmath.matrix4())
+    render.set_view(vmath.matrix4())
+    render.draw(self.post_processing_pred)
+  end
 
-	render.set_view(rendercam.calculate_view())
-	render.set_projection(rendercam.calculate_proj())
+  local function draw_game_world()
+    render.set_view(rendercam.calculate_view())
+    render.set_projection(rendercam.calculate_proj())
 
-	-- Sprite and particle rendering
-	render.set_depth_mask(false)
-	render.disable_state(render.STATE_DEPTH_TEST)
-	render.disable_state(render.STATE_STENCIL_TEST)
-	render.enable_state(render.STATE_BLEND)
-	render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-	render.disable_state(render.STATE_CULL_FACE)
+    -- Sprite and particle rendering
+    render.set_depth_mask(false)
+    render.disable_state(render.STATE_DEPTH_TEST)
+    render.disable_state(render.STATE_STENCIL_TEST)
+    render.enable_state(render.STATE_BLEND)
+    render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+    render.disable_state(render.STATE_CULL_FACE)
+    render.draw(self.particle_pred)
 
-	render.draw(self.tile_pred)
-	render.draw(self.particle_pred)
 
-	-- Model rendering
-	render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-	render.disable_state(render.STATE_CULL_FACE)
-	render.enable_state(render.STATE_DEPTH_TEST)
-	render.set_depth_mask(true)
-	render.draw(self.model_pred)
 
-	-- Debug rendering - physics debug, draw_line
-	render.disable_state(render.STATE_DEPTH_TEST)
-	render.disable_state(render.STATE_CULL_FACE)
-	render.draw_debug3d()
+    
+    render.set_projection(rendercam.calculate_proj())
+    -- Model rendering
+    render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+    render.disable_state(render.STATE_CULL_FACE)
+    render.enable_state(render.STATE_DEPTH_TEST)
+    render.set_depth_mask(true)
+    render.draw(self.model_pred)
 
-	-- GUI Rendering
-	render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
-	render.set_view(IDENTITY_MATRIX)
-	render.set_projection(self.gui_proj) -- gui_proj only calculated on update_window
+    -- Debug rendering - physics debug, draw_line
+    render.disable_state(render.STATE_DEPTH_TEST)
+    render.disable_state(render.STATE_CULL_FACE)
+    render.draw_debug3d()
 
-	render.enable_state(render.STATE_STENCIL_TEST)
-	render.draw(self.gui_pred)
-	render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
-	render.disable_state(render.STATE_STENCIL_TEST)
+    -- GUI Rendering
+    render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
+    render.set_view(IDENTITY_MATRIX)
+    render.set_projection(self.gui_proj) -- gui_proj only calculated on update_window
+
+    render.enable_state(render.STATE_STENCIL_TEST)
+    render.draw(self.gui_pred)
+    render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
+    render.disable_state(render.STATE_STENCIL_TEST)
+  end
+
+  default_renderer()
+
+  if post_process_target then
+    draw_post_processing()
+  else
+    draw_game_world()
+  end
 end
 
 function on_message(self, message_id, message)
@@ -88,5 +111,7 @@ function on_message(self, message_id, message)
 		update_window(self)
 	elseif message_id == UPDATE_WINDOW then -- sent by rendercam when a camera is activated ("window_resized" engine message requires data)
 		update_window(self)
+	elseif message_id == hash 'switch_targets' then -- sent by rendercam when a camera is activated ("window_resized" engine message requires data)
+		post_process_target = not post_process_target
 	end
 end

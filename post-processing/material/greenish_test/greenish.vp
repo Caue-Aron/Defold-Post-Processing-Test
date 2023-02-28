@@ -1,0 +1,30 @@
+attribute highp vec4 position;
+attribute mediump vec2 texcoord0;
+
+// used in fragment program
+varying mediump vec2 var_texcoord0;
+
+// uniform mediump mat4 mtx_view;
+// uniform mediump mat4 mtx_proj;
+// mediump mat4 mtx_model = mat4(  
+//     1.0, 0.0, 0.0, 0.0,
+//     0.0, 1.0, 0.0, 0.0,
+//     0.0, 0.0, 1.0, 0.0,
+//     0.0, 0.0, 0.0, 1.0
+// );
+
+
+// mat4 rotationX( in float angle ) {
+// 	return mat4(	1.0,		0,			0,			0,
+// 			 		0, 	cos(angle),	-sin(angle),		0,
+// 					0, 	sin(angle),	 cos(angle),		0,
+// 					0, 			0,			  0, 		1);
+// }
+
+void main()
+{
+    // vec4 p = mtx_proj * mtx_view * mtx_model * vec4(position.xyz, 1);
+    var_texcoord0 = texcoord0;
+    gl_Position = position;
+}
+

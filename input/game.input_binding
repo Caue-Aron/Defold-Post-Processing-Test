@@ -26,6 +26,10 @@ key_trigger {
   input: KEY_F
   action: "detach_cam"
 }
+key_trigger {
+  input: KEY_Z
+  action: "switch_targets"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

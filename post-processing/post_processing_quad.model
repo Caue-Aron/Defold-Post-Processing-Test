@@ -1,5 +1,6 @@
-mesh: "/post-processing/quad_2x2.dae"
-material: "/builtins/materials/model.material"
+mesh: "/post-processing/quad.glb"
+material: "/post-processing/material/greenish_test/greenish.material"
+textures: "/post-processing/test_image.jpg"
 skeleton: ""
 animations: ""
 default_animation: ""

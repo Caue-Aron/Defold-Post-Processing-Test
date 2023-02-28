@@ -1,133 +1,10 @@
 name: "main"
-instances {
-  id: "camera"
-  prototype: "/rendercam/camera.go"
-  position {
-    x: 0.0
-    y: 0.0
-    z: 23.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-instances {
-  id: "lamp"
-  prototype: "/definitely-lit/light sources/base lamp/lamp.go"
-  position {
-    x: 7.0
-    y: 0.0
-    z: 3.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-instances {
-  id: "lamp1"
-  prototype: "/definitely-lit/light sources/base lamp/lamp.go"
-  position {
-    x: 2.0
-    y: 0.0
-    z: 12.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-instances {
-  id: "lamp2"
-  prototype: "/definitely-lit/light sources/base lamp/lamp.go"
-  position {
-    x: -5.393
-    y: 0.0
-    z: 3.19
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-instances {
-  id: "sun"
-  prototype: "/definitely-lit/light sources/sun/sun.go"
-  position {
-    x: 0.407
-    y: 7.096
-    z: 22.879
-  }
-  rotation {
-    x: 0.3350038
-    y: -0.7563534
-    z: 0.54626846
-    w: -0.13150212
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-collection_instances {
-  id: "tucunare"
-  collection: "/assets/tucunare/tucunare.collection"
-  position {
-    x: 1.0
-    y: 0.0
-    z: 6.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
 scale_along_z: 0
 embedded_instances {
-  id: "go"
-  children: "lamp"
-  children: "lamp1"
-  children: "lamp2"
+  id: "manager"
   data: "components {\n"
-  "  id: \"rotation\"\n"
-  "  component: \"/assets/rotation.script\"\n"
+  "  id: \"get_input\"\n"
+  "  component: \"/main/manager.script\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -139,12 +16,43 @@ embedded_instances {
   "    z: 0.0\n"
   "    w: 1.0\n"
   "  }\n"
-  "  properties {\n"
-  "    id: \"speed\"\n"
-  "    value: \"40.0\"\n"
-  "    type: PROPERTY_TYPE_NUMBER\n"
-  "  }\n"
   "  property_decls {\n"
+  "  }\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"post_processing_loader\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/post-processing/post_process_test.collection\\\"\\n"
+  "exclude: false\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"defold_scene_loader\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/assets/3D defold logo/game_world.collection\\\"\\n"
+  "exclude: false\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
   "  }\n"
   "}\n"
   ""

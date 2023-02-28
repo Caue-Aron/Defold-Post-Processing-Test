@@ -1,4 +1,4 @@
-name: "default"
+name: "game_world_collection"
 instances {
   id: "sun"
   prototype: "/definitely-lit/light sources/sun/sun.go"
@@ -38,7 +38,7 @@ instances {
   }
 }
 instances {
-  id: "camera"
+  id: "scene_cam"
   prototype: "/rendercam/camera.go"
   position {
     x: 0.0
@@ -53,6 +53,11 @@ instances {
   }
   component_properties {
     id: "script"
+    properties {
+      id: "active"
+      value: "false"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
     properties {
       id: "orthographic"
       value: "true"
