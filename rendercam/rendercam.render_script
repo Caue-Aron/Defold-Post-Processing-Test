@@ -7,8 +7,8 @@ local CLEAR_COLOR = hash("clear_color")
 local WINDOW_RESIZED = hash("window_resized")
 local UPDATE_WINDOW = hash("update window")
 
-local post_process_target = true
-local game_world_target = false
+local post_process_target = false
+local foi = false
 
 
 local function update_window(self)
@@ -32,19 +32,24 @@ function init(self)
 	rendercam.configWin.x = render.get_width();  rendercam.configWin.y = render.get_height()
 	rendercam.update_window_size(render.get_window_width(), render.get_window_height())
 	update_window(self)
-
-  local color_params = { format = render.FORMAT_RGBA,
-                       width = render.get_width(),
-                       height = render.get_height() }        
-  local target_params = {[render.BUFFER_COLOR_BIT] = color_params }
-  self.target = render.render_target("original", target_params)
+  
+  color_params = { 
+    format = render.FORMAT_RGBA,
+    width = render.get_window_width(),
+    height = render.get_window_height(),
+    min_filter = render.FILTER_LINEAR,
+    mag_filter = render.FILTER_LINEAR,
+    u_wrap = render.WRAP_CLAMP_TO_EDGE,
+    v_wrap = render.WRAP_CLAMP_TO_EDGE 
+  }
+  target_params = {[render.BUFFER_COLOR_BIT] = color_params }
+  self.pp_game_world = render.render_target('pp_gameWorld', target_params)
 end
 
 function update(self)
   local function default_renderer()
-    render.set_depth_mask(true)
     render.set_stencil_mask(0xff)
-    render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+    render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_COLOR0_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
   
     render.set_viewport(vp.x, vp.y, vp.width, vp.height)
   end
@@ -56,6 +61,7 @@ function update(self)
   end
 
   local function draw_game_world()
+    render.set_depth_mask(true)
     render.set_view(rendercam.calculate_view())
     render.set_projection(rendercam.calculate_proj())
 
@@ -94,14 +100,69 @@ function update(self)
     render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
     render.disable_state(render.STATE_STENCIL_TEST)
   end
+  
+  
+  render.set_render_target(self.pp_game_world)
+  render.set_stencil_mask(0xff)
+  render.clear({[render.BUFFER_COLOR0_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
 
-  default_renderer()
+  render.set_viewport(vp.x, vp.y, vp.width, vp.height)
 
-  if post_process_target then
-    draw_post_processing()
-  else
-    draw_game_world()
-  end
+
+  -- default_renderer()
+  render.set_depth_mask(true)
+  render.set_view(rendercam.calculate_view())
+  render.set_projection(rendercam.calculate_proj())
+
+  -- Sprite and particle rendering
+  render.set_depth_mask(false)
+  render.disable_state(render.STATE_DEPTH_TEST)
+  render.disable_state(render.STATE_STENCIL_TEST)
+  render.enable_state(render.STATE_BLEND)
+  render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+  render.disable_state(render.STATE_CULL_FACE)
+  render.draw(self.particle_pred)
+
+  render.set_projection(rendercam.calculate_proj())
+  -- Model rendering
+  render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+  render.disable_state(render.STATE_CULL_FACE)
+  render.enable_state(render.STATE_DEPTH_TEST)
+  render.set_depth_mask(true)
+  render.draw(self.model_pred)
+
+  -- Debug rendering - physics debug, draw_line
+  render.disable_state(render.STATE_DEPTH_TEST)
+  render.disable_state(render.STATE_CULL_FACE)
+  render.draw_debug3d()
+
+  -- GUI Rendering
+  render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
+  render.set_view(IDENTITY_MATRIX)
+  render.set_projection(self.gui_proj) -- gui_proj only calculated on update_window
+
+  render.enable_state(render.STATE_STENCIL_TEST)
+  render.draw(self.gui_pred)
+  render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
+  render.disable_state(render.STATE_STENCIL_TEST)
+
+  -- changes to post process
+  render.set_render_target(render.RENDER_TARGET_DEFAULT)
+  
+  render.set_depth_mask(false)
+  render.set_stencil_mask(0xff)
+  render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+
+  render.set_viewport(vp.x, vp.y, vp.width, vp.height)
+
+  render.set_projection(vmath.matrix4())
+  render.set_view(vmath.matrix4())
+
+  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR_BIT)
+  render.draw(self.post_processing_pred)
+  render.disable_texture(0)
+  
+  -- render.delete_render_target(self.pp_game_world)
 end
 
 function on_message(self, message_id, message)

@@ -54,11 +54,6 @@ instances {
   component_properties {
     id: "script"
     properties {
-      id: "active"
-      value: "false"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
-    properties {
       id: "orthographic"
       value: "true"
       type: PROPERTY_TYPE_BOOLEAN

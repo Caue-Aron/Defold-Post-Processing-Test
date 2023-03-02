@@ -12,6 +12,11 @@ components {
     z: 0.0
     w: 1.0
   }
+  properties {
+    id: "fixedAspectRatio"
+    value: "true"
+    type: PROPERTY_TYPE_BOOLEAN
+  }
 }
 embedded_components {
   id: "model"

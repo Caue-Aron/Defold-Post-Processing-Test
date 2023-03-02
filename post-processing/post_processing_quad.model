@@ -1,6 +1,6 @@
 mesh: "/post-processing/quad.glb"
-material: "/post-processing/material/greenish_test/greenish.material"
-textures: "/post-processing/test_image.jpg"
+material: "/post-processing/material/greenish_test/blur.material"
+textures: "/post-processing/test_texture3.jpg"
 skeleton: ""
 animations: ""
 default_animation: ""

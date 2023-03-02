@@ -16,3 +16,6 @@ input_method = HiddenInputField
 title = Defold Post-Processing Test
 dependencies#0 = https://github.com/Caue-Aron/DEFifnitely-Lit/archive/refs/tags/1.1.zip
 
+[physics]
+type = 3D
+

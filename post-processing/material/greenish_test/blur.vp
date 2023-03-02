@@ -1,0 +1,13 @@
+attribute highp vec4 position;
+attribute mediump vec2 texcoord0;
+
+// used in fragment program
+varying mediump vec2 var_texcoord0;
+varying mediump vec2 pos;
+
+void main()
+{
+    var_texcoord0 = texcoord0;
+    pos = position.xy;
+    gl_Position = position;
+}
