@@ -1,4 +1,3 @@
-
 local rendercam = require "rendercam.rendercam"
 local vp = rendercam.viewport
 
@@ -7,11 +6,22 @@ local CLEAR_COLOR = hash("clear_color")
 local WINDOW_RESIZED = hash("window_resized")
 local UPDATE_WINDOW = hash("update window")
 
+local res_fac = 4;
+
 local function update_window(self)
+  -- local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
+  -- local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
+  -- local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
+  -- self.pp_game_world = render.render_target("pp_gameWorld",target_params)
+
   local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
   local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
-  local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
+
+  local target_params = {
+    [render.BUFFER_COLOR0_BIT] = rgba_params, [render.BUFFER_DEPTH_BIT] = depth_params
+  }
   self.pp_game_world = render.render_target("pp_gameWorld",target_params)
+  
 	rendercam.update_window(render.get_window_width(), render.get_window_height())
 	self.gui_proj = vmath.matrix4_orthographic(0, rendercam.window.x, 0, rendercam.window.y, -1, 1)
 end
@@ -23,7 +33,7 @@ function init(self)
 	self.particle_pred = render.predicate({"particle"})
 	self.post_processing_pred = render.predicate({"post_processing"})
 
-	self.clear_color = vmath.vector4(0)
+	self.clear_color = vmath.vector4()
 	self.clear_color.x = sys.get_config("render.clear_color_red", 0)
 	self.clear_color.y = sys.get_config("render.clear_color_green", 0)
 	self.clear_color.z = sys.get_config("render.clear_color_blue", 0)
@@ -32,19 +42,13 @@ function init(self)
 	rendercam.configWin.x = render.get_width();  rendercam.configWin.y = render.get_height()
 	rendercam.update_window_size(render.get_window_width(), render.get_window_height())
 	update_window(self)
-
-  local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
-  local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
-  local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
-  self.pp_game_world = render.render_target("pp_gameWorld",target_params)
-
 end
 
 function update(self)
   
   render.set_render_target(self.pp_game_world)
   render.set_stencil_mask(0xff)
-  render.clear({[render.BUFFER_COLOR0_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
+  render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
 
   render.set_viewport(vp.x, vp.y, vp.width, vp.height)
 
@@ -68,10 +72,10 @@ function update(self)
   render.disable_state(render.STATE_BLEND)
   render.disable_state(render.STATE_STENCIL_TEST)
   render.disable_render_target(self.pp_game_world)
-  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR_BIT)
+  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR0_BIT)
   
   render.draw(self.post_processing_pred)
-  render.disable_texture(0, self.pp_game_world)
+  render.disable_texture(0)
 
   -- GUI Rendering
   render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
