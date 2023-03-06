@@ -5,6 +5,8 @@
     "editor.suggest.shareSuggestSelections": true,
     "editor.suggest.showWords": false,
     "vscode-lua-format.configPath": ".vscode/lua-format.config",
+
+    "glsllint.glslangValidatorPath": "C:\\Users\\Usuario\\Desktop\\Defold\\glslang-master-windows-x64-Release\\glslangValidator.exe",
     
     // Lua tab size
     "[lua]": {
@@ -123,7 +125,8 @@
         "redefined-local",
         "missing-parameter",
         "redundant-parameter",
-        "param-type-mismatch"
+        "param-type-mismatch",
+        "undefined-field"
     ],
     "Lua.workspace.ignoreDir": [
         ".vscode",

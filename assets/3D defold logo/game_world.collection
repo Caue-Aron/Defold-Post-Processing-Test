@@ -8,10 +8,10 @@ instances {
     z: 13.0
   }
   rotation {
-    x: 0.0
-    y: 0.92122126
-    z: 0.0
-    w: -0.389039
+    x: 8.498861E-18
+    y: 0.9377995
+    z: -0.34717724
+    w: 2.5203073E-17
   }
   component_properties {
     id: "sun"
@@ -56,6 +56,16 @@ instances {
     properties {
       id: "orthographic"
       value: "true"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
+    properties {
+      id: "expandView"
+      value: "true"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
+    properties {
+      id: "fixedArea"
+      value: "false"
       type: PROPERTY_TYPE_BOOLEAN
     }
   }

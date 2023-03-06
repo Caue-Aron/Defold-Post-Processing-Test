@@ -1,5 +1,5 @@
 script: "/rendercam/rendercam.render_script"
 materials {
   name: "blur"
-  material: "/post-processing/material/greenish_test/blur.material"
+  material: "/post-processing/material/blur/blur.material"
 }

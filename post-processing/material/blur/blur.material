@@ -1,0 +1,33 @@
+name: "blur"
+tags: "post_processing"
+vertex_program: "/post-processing/material/blur/blur.vp"
+fragment_program: "/post-processing/material/blur/blur.fp"
+vertex_space: VERTEX_SPACE_WORLD
+vertex_constants {
+  name: "mtx_viewproj"
+  type: CONSTANT_TYPE_VIEWPROJ
+  value {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+}
+fragment_constants {
+  name: "BLUR_viewPort_Radius"
+  type: CONSTANT_TYPE_USER
+  value {
+    x: 1280.0
+    y: 720.0
+    z: 5.0
+    w: 0.0
+  }
+}
+samplers {
+  name: "tex0"
+  wrap_u: WRAP_MODE_CLAMP_TO_EDGE
+  wrap_v: WRAP_MODE_CLAMP_TO_EDGE
+  filter_min: FILTER_MODE_MIN_LINEAR
+  filter_mag: FILTER_MODE_MAG_LINEAR
+  max_anisotropy: 0.0
+}

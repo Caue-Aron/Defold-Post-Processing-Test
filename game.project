@@ -5,10 +5,6 @@ render = /rendercam/rendercam.renderc
 [script]
 shared_state = 1
 
-[display]
-width = 1280
-height = 720
-
 [android]
 input_method = HiddenInputField
 

@@ -7,11 +7,11 @@ local CLEAR_COLOR = hash("clear_color")
 local WINDOW_RESIZED = hash("window_resized")
 local UPDATE_WINDOW = hash("update window")
 
-local post_process_target = false
-local foi = false
-
-
 local function update_window(self)
+  local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
+  local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
+  local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
+  self.pp_game_world = render.render_target("pp_gameWorld",target_params)
 	rendercam.update_window(render.get_window_width(), render.get_window_height())
 	self.gui_proj = vmath.matrix4_orthographic(0, rendercam.window.x, 0, rendercam.window.y, -1, 1)
 end
@@ -32,75 +32,15 @@ function init(self)
 	rendercam.configWin.x = render.get_width();  rendercam.configWin.y = render.get_height()
 	rendercam.update_window_size(render.get_window_width(), render.get_window_height())
 	update_window(self)
-  
-  color_params = { 
-    format = render.FORMAT_RGBA,
-    width = render.get_window_width(),
-    height = render.get_window_height(),
-    min_filter = render.FILTER_LINEAR,
-    mag_filter = render.FILTER_LINEAR,
-    u_wrap = render.WRAP_CLAMP_TO_EDGE,
-    v_wrap = render.WRAP_CLAMP_TO_EDGE 
-  }
-  target_params = {[render.BUFFER_COLOR_BIT] = color_params }
-  self.pp_game_world = render.render_target('pp_gameWorld', target_params)
+
+  local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
+  local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
+  local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
+  self.pp_game_world = render.render_target("pp_gameWorld",target_params)
+
 end
 
 function update(self)
-  local function default_renderer()
-    render.set_stencil_mask(0xff)
-    render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_COLOR0_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
-  
-    render.set_viewport(vp.x, vp.y, vp.width, vp.height)
-  end
-
-  local function draw_post_processing()
-    render.set_projection(vmath.matrix4())
-    render.set_view(vmath.matrix4())
-    render.draw(self.post_processing_pred)
-  end
-
-  local function draw_game_world()
-    render.set_depth_mask(true)
-    render.set_view(rendercam.calculate_view())
-    render.set_projection(rendercam.calculate_proj())
-
-    -- Sprite and particle rendering
-    render.set_depth_mask(false)
-    render.disable_state(render.STATE_DEPTH_TEST)
-    render.disable_state(render.STATE_STENCIL_TEST)
-    render.enable_state(render.STATE_BLEND)
-    render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-    render.disable_state(render.STATE_CULL_FACE)
-    render.draw(self.particle_pred)
-
-
-
-    
-    render.set_projection(rendercam.calculate_proj())
-    -- Model rendering
-    render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-    render.disable_state(render.STATE_CULL_FACE)
-    render.enable_state(render.STATE_DEPTH_TEST)
-    render.set_depth_mask(true)
-    render.draw(self.model_pred)
-
-    -- Debug rendering - physics debug, draw_line
-    render.disable_state(render.STATE_DEPTH_TEST)
-    render.disable_state(render.STATE_CULL_FACE)
-    render.draw_debug3d()
-
-    -- GUI Rendering
-    render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
-    render.set_view(IDENTITY_MATRIX)
-    render.set_projection(self.gui_proj) -- gui_proj only calculated on update_window
-
-    render.enable_state(render.STATE_STENCIL_TEST)
-    render.draw(self.gui_pred)
-    render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
-    render.disable_state(render.STATE_STENCIL_TEST)
-  end
-  
   
   render.set_render_target(self.pp_game_world)
   render.set_stencil_mask(0xff)
@@ -108,23 +48,11 @@ function update(self)
 
   render.set_viewport(vp.x, vp.y, vp.width, vp.height)
 
-
-  -- default_renderer()
+  -- Model rendering
   render.set_depth_mask(true)
   render.set_view(rendercam.calculate_view())
   render.set_projection(rendercam.calculate_proj())
 
-  -- Sprite and particle rendering
-  render.set_depth_mask(false)
-  render.disable_state(render.STATE_DEPTH_TEST)
-  render.disable_state(render.STATE_STENCIL_TEST)
-  render.enable_state(render.STATE_BLEND)
-  render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
-  render.disable_state(render.STATE_CULL_FACE)
-  render.draw(self.particle_pred)
-
-  render.set_projection(rendercam.calculate_proj())
-  -- Model rendering
   render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
   render.disable_state(render.STATE_CULL_FACE)
   render.enable_state(render.STATE_DEPTH_TEST)
@@ -136,6 +64,15 @@ function update(self)
   render.disable_state(render.STATE_CULL_FACE)
   render.draw_debug3d()
 
+  -- Post-Process rendering
+  render.disable_state(render.STATE_BLEND)
+  render.disable_state(render.STATE_STENCIL_TEST)
+  render.disable_render_target(self.pp_game_world)
+  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR_BIT)
+  
+  render.draw(self.post_processing_pred)
+  render.disable_texture(0, self.pp_game_world)
+
   -- GUI Rendering
   render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
   render.set_view(IDENTITY_MATRIX)
@@ -144,25 +81,8 @@ function update(self)
   render.enable_state(render.STATE_STENCIL_TEST)
   render.draw(self.gui_pred)
   render.draw(self.text_pred) -- Includes debug text from "draw_text" messages.
+  render.disable_state(render.STATE_BLEND)
   render.disable_state(render.STATE_STENCIL_TEST)
-
-  -- changes to post process
-  render.set_render_target(render.RENDER_TARGET_DEFAULT)
-  
-  render.set_depth_mask(false)
-  render.set_stencil_mask(0xff)
-  render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
-
-  render.set_viewport(vp.x, vp.y, vp.width, vp.height)
-
-  render.set_projection(vmath.matrix4())
-  render.set_view(vmath.matrix4())
-
-  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR_BIT)
-  render.draw(self.post_processing_pred)
-  render.disable_texture(0)
-  
-  -- render.delete_render_target(self.pp_game_world)
 end
 
 function on_message(self, message_id, message)
@@ -172,7 +92,5 @@ function on_message(self, message_id, message)
 		update_window(self)
 	elseif message_id == UPDATE_WINDOW then -- sent by rendercam when a camera is activated ("window_resized" engine message requires data)
 		update_window(self)
-	elseif message_id == hash 'switch_targets' then -- sent by rendercam when a camera is activated ("window_resized" engine message requires data)
-		post_process_target = not post_process_target
 	end
 end
