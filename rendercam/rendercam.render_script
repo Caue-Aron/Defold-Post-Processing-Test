@@ -9,21 +9,23 @@ local UPDATE_WINDOW = hash("update window")
 local res_fac = 4;
 
 local function update_window(self)
-  -- local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
-  -- local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
-  -- local target_params = {[render.BUFFER_COLOR_BIT] = rgba_params , [render.BUFFER_DEPTH_BIT] = depth_params}
-  -- self.pp_game_world = render.render_target("pp_gameWorld",target_params)
-
   local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
+  local rgba_params_blur = {format = render.FORMAT_RGBA,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
+
   local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
 
-  local target_params = {
-    [render.BUFFER_COLOR0_BIT] = rgba_params, [render.BUFFER_DEPTH_BIT] = depth_params
-  }
-  self.pp_game_world = render.render_target("pp_gameWorld",target_params)
+  local target_params = {[render.BUFFER_COLOR0_BIT] = rgba_params, [render.BUFFER_DEPTH_BIT] = depth_params}
+
+  self.game_world_fbo = render.render_target("game_world_fbo",target_params)
+  self.blur_fbo[0] = render.render_target("blur1",target_params)
+  self.blur_fbo[1] = render.render_target("blur2",target_params)
   
 	rendercam.update_window(render.get_window_width(), render.get_window_height())
 	self.gui_proj = vmath.matrix4_orthographic(0, rendercam.window.x, 0, rendercam.window.y, -1, 1)
+end
+
+function boolToNumber(v)
+  return v and 1 or 0
 end
 
 function init(self)
@@ -39,14 +41,15 @@ function init(self)
 	self.clear_color.z = sys.get_config("render.clear_color_blue", 0)
 	self.clear_color.w = sys.get_config("render.clear_color_alpha", 0)
 
+  self.blur_fbo = {}
+
 	rendercam.configWin.x = render.get_width();  rendercam.configWin.y = render.get_height()
 	rendercam.update_window_size(render.get_window_width(), render.get_window_height())
 	update_window(self)
 end
 
 function update(self)
-  
-  render.set_render_target(self.pp_game_world)
+  render.set_render_target(self.game_world_fbo)
   render.set_stencil_mask(0xff)
   render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
 
@@ -71,11 +74,47 @@ function update(self)
   -- Post-Process rendering
   render.disable_state(render.STATE_BLEND)
   render.disable_state(render.STATE_STENCIL_TEST)
-  render.disable_render_target(self.pp_game_world)
-  render.enable_texture(0, self.pp_game_world, render.BUFFER_COLOR0_BIT)
+
+  local first_iteration = true 
+  local amount = 10
+  local horizontal = true
+  local not_hor, hor
+  local add_blur = 0
+
+  render.disable_render_target(self.game_world_fbo)
   
-  render.draw(self.post_processing_pred)
-  render.disable_texture(0)
+  for i = 1, amount do
+    hor     = boolToNumber(horizontal)
+    not_hor = boolToNumber(not horizontal)
+
+    render.set_render_target(self.blur_fbo[hor])
+    render.enable_render_target(self.blur_fbo[hor])
+    local constants = render.constant_buffer()
+
+    if first_iteration then
+      render.enable_texture(0, self.game_world_fbo, render.BUFFER_COLOR0_BIT)
+
+      first_iteration = false
+
+    else
+      render.disable_render_target(self.blur_fbo[not_hor])
+      render.enable_texture(0, self.blur_fbo[not_hor], render.BUFFER_COLOR0_BIT)
+
+    end
+
+    if i == 10 then
+      add_blur = 1
+    end
+
+    print(add_blur)
+    
+    constants.BLUR_viewPort_Radius = vmath.vector4(add_blur, 0,0, not_hor)
+    render.draw(self.post_processing_pred, {constants = constants})
+
+    render.disable_texture(0)
+    horizontal = not horizontal
+  end
+
 
   -- GUI Rendering
   render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)
@@ -89,9 +128,12 @@ function update(self)
   render.disable_state(render.STATE_STENCIL_TEST)
 end
 
-function on_message(self, message_id, message)
+function on_message(self, message_id, message, sender)
 	if message_id == CLEAR_COLOR then
 		self.clear_color = message.color
+  elseif message_id == hash'blur_object' then
+    blur_object = message.blur_object
+    blur_go = sender
 	elseif message_id == WINDOW_RESIZED then -- sent by engine
 		update_window(self)
 	elseif message_id == UPDATE_WINDOW then -- sent by rendercam when a camera is activated ("window_resized" engine message requires data)

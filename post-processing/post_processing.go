@@ -29,7 +29,7 @@ components {
   }
   properties {
     id: "blur_radius"
-    value: "10.0"
+    value: "1.0"
     type: PROPERTY_TYPE_NUMBER
   }
 }

@@ -2,27 +2,23 @@ local rendercam = require 'rendercam.rendercam'
 
 go.property('blur_radius', 10)
 
-function init(self)
-  pcall(function ()
-    go.set('#post_processing_quad', "BLUR_viewPort_Radius", vmath.vector4(
-      rendercam.viewport.width,
-      rendercam.viewport.height,
-      self.blur_radius,
-      0
-    ))
-  end)
-  
-end
+local blur_dir = 1
 
-function update(self, dt)
-  -- print(rendercam.viewport.width, rendercam.viewport.height)
-  
-  pcall(function ()
-    go.set('#post_processing_quad', "BLUR_viewPort_Radius", vmath.vector4(
-      rendercam.viewport.width,
-      rendercam.viewport.height,
-      self.blur_radius,
-      0
-    ))
-  end)
-end
+-- function init(self)
+--   pcall(function ()
+--     go.set('#post_processing_quad', "BLUR_viewPort_Radius", vmath.vector4(1,0,0, blur_dir))
+--   end)
+
+--   msg.post('@render:', hash'blur_object', {blur_object = go.get_id('#post_processing_quad')})  
+-- end
+
+-- function update(self, dt)
+--   pcall(function ()
+--     go.set('#post_processing_quad', "BLUR_viewPort_Radius", vmath.vector4(
+--       rendercam.viewport.width,
+--       rendercam.viewport.height,
+--       self.blur_radius,
+--       axis
+--     ))
+--   end)
+-- end

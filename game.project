@@ -11,6 +11,7 @@ input_method = HiddenInputField
 [project]
 title = Defold Post-Processing Test
 dependencies#0 = https://github.com/Caue-Aron/DEFifnitely-Lit/archive/refs/tags/1.1.1.zip
+dependencies#1 = https://github.com/britzl/defold-metrics/archive/refs/tags/1.2.1.zip
 
 [physics]
 type = 3D
