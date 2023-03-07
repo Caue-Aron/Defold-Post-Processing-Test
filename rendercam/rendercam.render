@@ -3,3 +3,7 @@ materials {
   name: "blur"
   material: "/post-processing/material/blur/blur.material"
 }
+materials {
+  name: "bright"
+  material: "/post-processing/material/brightest_pixels/brightest_pixel.material"
+}

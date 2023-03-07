@@ -9,16 +9,36 @@ local UPDATE_WINDOW = hash("update window")
 local res_fac = 4;
 
 local function update_window(self)
-  local rgba_params = {format = render.FORMAT_RGBA,width = render.get_window_width(),height = render.get_window_height()}
-  local rgba_params_blur = {format = render.FORMAT_RGBA,width = render.get_window_width() / res_fac,height = render.get_window_height() / res_fac}
+  local rgba_params = {
+    format      = render.FORMAT_RGBA,         width       = render.get_window_width(), height = render.get_window_height(),
+    min_filter  = render.FILTER_LINEAR,       mag_filter  = render.FILTER_LINEAR,
+    u_wrap      = render.WRAP_CLAMP_TO_EDGE,  v_wrap      = render.WRAP_CLAMP_TO_EDGE
+  }
 
-  local depth_params = { format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height()}
+  local depth_params = {
+    format = render.FORMAT_DEPTH,width = render.get_window_width(),height = render.get_window_height(),
+    min_filter = render.FILTER_LINEAR, mag_filter = render.FILTER_LINEAR,
+    u_wrap = render.WRAP_CLAMP_TO_EDGE, v_wrap = render.WRAP_CLAMP_TO_EDGE
+  }
 
-  local target_params = {[render.BUFFER_COLOR0_BIT] = rgba_params, [render.BUFFER_DEPTH_BIT] = depth_params}
+  self.game_world_fbo = render.render_target("game_world_fbo",{[render.BUFFER_COLOR0_BIT] = rgba_params, [render.BUFFER_DEPTH_BIT] = depth_params})
+  
+  self.blur_fbo[0] = render.render_target("blur1",{
+    [render.BUFFER_COLOR0_BIT] = rgba_params,
+    [render.BUFFER_COLOR1_BIT] = rgba_params,
+    [render.BUFFER_DEPTH_BIT] = depth_params
+  })
 
-  self.game_world_fbo = render.render_target("game_world_fbo",target_params)
-  self.blur_fbo[0] = render.render_target("blur1",target_params)
-  self.blur_fbo[1] = render.render_target("blur2",target_params)
+  self.blur_fbo[1] = render.render_target("blur2",{
+    [render.BUFFER_COLOR0_BIT] = rgba_params,
+    [render.BUFFER_COLOR1_BIT] = rgba_params,
+    [render.BUFFER_DEPTH_BIT] = depth_params
+  })
+    
+  self.bright = render.render_target("bright",{
+    [render.BUFFER_COLOR1_BIT] = rgba_params,
+    [render.BUFFER_DEPTH_BIT] = depth_params
+  })
   
 	rendercam.update_window(render.get_window_width(), render.get_window_height())
 	self.gui_proj = vmath.matrix4_orthographic(0, rendercam.window.x, 0, rendercam.window.y, -1, 1)
@@ -75,39 +95,36 @@ function update(self)
   render.disable_state(render.STATE_BLEND)
   render.disable_state(render.STATE_STENCIL_TEST)
 
-  local first_iteration = true 
   local amount = 10
-  local horizontal = true
+  local horizontal = false
   local not_hor, hor
   local add_blur = 0
 
+  render.enable_material('bright')
   render.disable_render_target(self.game_world_fbo)
+  render.enable_texture(0, self.game_world_fbo, render.BUFFER_COLOR0_BIT)
+  render.set_render_target(self.bright)
+  render.draw(self.post_processing_pred)
   
+  render.disable_render_target(self.bright)
+  render.enable_texture(1, self.bright, render.BUFFER_COLOR1_BIT)
+
+  render.enable_material('blur')
   for i = 1, amount do
     hor     = boolToNumber(horizontal)
     not_hor = boolToNumber(not horizontal)
 
-    render.set_render_target(self.blur_fbo[hor])
     render.enable_render_target(self.blur_fbo[hor])
+    render.set_render_target(self.blur_fbo[hor])
     local constants = render.constant_buffer()
 
-    if first_iteration then
-      render.enable_texture(0, self.game_world_fbo, render.BUFFER_COLOR0_BIT)
-
-      first_iteration = false
-
-    else
-      render.disable_render_target(self.blur_fbo[not_hor])
-      render.enable_texture(0, self.blur_fbo[not_hor], render.BUFFER_COLOR0_BIT)
-
-    end
+    render.disable_render_target(self.blur_fbo[not_hor])
+    render.enable_texture(1, self.blur_fbo[not_hor], render.BUFFER_COLOR1_BIT)
 
     if i == 10 then
       add_blur = 1
     end
-
-    print(add_blur)
-    
+        
     constants.BLUR_viewPort_Radius = vmath.vector4(add_blur, 0,0, not_hor)
     render.draw(self.post_processing_pred, {constants = constants})
 
@@ -115,6 +132,7 @@ function update(self)
     horizontal = not horizontal
   end
 
+  render.disable_material()
 
   -- GUI Rendering
   render.set_viewport(0, 0, rendercam.window.x, rendercam.window.y)

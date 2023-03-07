@@ -1,7 +1,7 @@
 name: "blur"
 tags: "post_processing"
-vertex_program: "/post-processing/material/blur/blur.vp"
-fragment_program: "/post-processing/material/blur/blur.fp"
+vertex_program: "/post-processing/material/brightest_pixels/brightest_pixel.vp"
+fragment_program: "/post-processing/material/brightest_pixels/brightest_pixel.fp"
 vertex_space: VERTEX_SPACE_WORLD
 vertex_constants {
   name: "mtx_viewproj"
@@ -25,14 +25,6 @@ fragment_constants {
 }
 samplers {
   name: "tex0"
-  wrap_u: WRAP_MODE_CLAMP_TO_EDGE
-  wrap_v: WRAP_MODE_CLAMP_TO_EDGE
-  filter_min: FILTER_MODE_MIN_LINEAR
-  filter_mag: FILTER_MODE_MAG_LINEAR
-  max_anisotropy: 0.0
-}
-samplers {
-  name: "tex1"
   wrap_u: WRAP_MODE_CLAMP_TO_EDGE
   wrap_v: WRAP_MODE_CLAMP_TO_EDGE
   filter_min: FILTER_MODE_MIN_LINEAR
