@@ -25,18 +25,16 @@ local function update_window(self)
   
   self.blur_fbo[0] = render.render_target("blur1",{
     [render.BUFFER_COLOR0_BIT] = rgba_params,
-    [render.BUFFER_COLOR1_BIT] = rgba_params,
     [render.BUFFER_DEPTH_BIT] = depth_params
   })
 
   self.blur_fbo[1] = render.render_target("blur2",{
     [render.BUFFER_COLOR0_BIT] = rgba_params,
-    [render.BUFFER_COLOR1_BIT] = rgba_params,
     [render.BUFFER_DEPTH_BIT] = depth_params
   })
     
   self.bright = render.render_target("bright",{
-    [render.BUFFER_COLOR1_BIT] = rgba_params,
+    [render.BUFFER_COLOR0_BIT] = rgba_params,
     [render.BUFFER_DEPTH_BIT] = depth_params
   })
   
@@ -95,20 +93,23 @@ function update(self)
   render.disable_state(render.STATE_BLEND)
   render.disable_state(render.STATE_STENCIL_TEST)
 
-  local amount = 10
-  local horizontal = false
-  local not_hor, hor
-  local add_blur = 0
-
-  render.enable_material('bright')
   render.disable_render_target(self.game_world_fbo)
   render.enable_texture(0, self.game_world_fbo, render.BUFFER_COLOR0_BIT)
-  render.set_render_target(self.bright)
-  render.draw(self.post_processing_pred)
   
-  render.disable_render_target(self.bright)
-  render.enable_texture(1, self.bright, render.BUFFER_COLOR1_BIT)
+  render.enable_render_target(self.bright)
+  render.set_render_target(self.bright)
+  -- changes the material to filterring brightest pixels
+  render.enable_material('bright') 
+  render.draw(self.post_processing_pred)
 
+  render.disable_render_target(self.bright)
+  render.enable_texture(0, self.bright, render.BUFFER_COLOR0_BIT)
+
+  local amount = 1
+  local horizontal = false
+  local not_hor, hor = boolToNumber(not horizontal), boolToNumber(horizontal)
+  local add_blur = 0
+  
   render.enable_material('blur')
   for i = 1, amount do
     hor     = boolToNumber(horizontal)
@@ -119,7 +120,7 @@ function update(self)
     local constants = render.constant_buffer()
 
     render.disable_render_target(self.blur_fbo[not_hor])
-    render.enable_texture(1, self.blur_fbo[not_hor], render.BUFFER_COLOR1_BIT)
+    render.enable_texture(0, self.blur_fbo[not_hor], render.BUFFER_COLOR_BIT)
 
     if i == 10 then
       add_blur = 1

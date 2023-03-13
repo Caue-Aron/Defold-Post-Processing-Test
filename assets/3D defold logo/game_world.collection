@@ -8,10 +8,10 @@ instances {
     z: 13.0
   }
   rotation {
-    x: 0.0
-    y: 1.0
-    z: 0.0
-    w: 6.123234E-17
+    x: 1.7913006E-17
+    y: 0.9562528
+    z: -0.2925416
+    w: 5.85536E-17
   }
   component_properties {
     id: "sun"
