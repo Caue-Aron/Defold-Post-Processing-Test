@@ -1,4 +1,4 @@
-name: "blur"
+name: "bright"
 tags: "post_processing"
 vertex_program: "/post-processing/material/brightest_pixels/brightest_pixel.vp"
 fragment_program: "/post-processing/material/brightest_pixels/brightest_pixel.fp"

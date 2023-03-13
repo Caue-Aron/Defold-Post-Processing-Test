@@ -1,6 +1,4 @@
 varying mediump vec2 var_texcoord0;
-varying mediump vec2 pos;
-
 uniform lowp sampler2D tex0;
 
 void main()
@@ -8,7 +6,7 @@ void main()
     vec4 blurF = texture2D(tex0, var_texcoord0);
 
     vec4 pxl = blurF;
-    float brightness = dot(pxl.rgb, vec3(0.7, 0.7, 0.7));
+    float brightness = dot(pxl.rgb, vec3(0.8, 0.8, 0.8));
     if(brightness > 1.0)
         pxl = vec4(pxl.rgb, 1.0);
     else
